@@ -1,8 +1,15 @@
 import { Building2 } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "../ui/button";
+import { useGetCurrentUser } from "@/hooks/use-auth";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Header() {
+  const { data: authData } = useGetCurrentUser();
+  useEffect(() => {
+    console.log("Auth data:", authData?.email);
+  }, [authData]);
+
   return (
     <div>
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
@@ -13,12 +20,20 @@ export default function Header() {
             </div>
             <h1 className="text-xl font-bold text-foreground">HRM System</h1>
           </div>
-          <div className="space-x-4">
-            <Button variant="outline" asChild>
-              <a href="/login">Sign In</a>
-            </Button>
-            <Button asChild>
-              <a href="/register">Get Started</a>
+          <div className="space-x-4 flex w-full items-center justify-end">
+            {!authData ? (
+              <Button size="lg" className="w-fit" asChild>
+                <a href="/login">Login</a>
+              </Button>
+            ) : (
+              <Avatar className="border">
+                <AvatarFallback className="bg-primary text-white">
+                  {authData?.email.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <Button size="lg" variant="outline" className="bg-white" asChild>
+              <a href="">Start</a>
             </Button>
           </div>
         </div>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConditionalHeader } from "@/components/layout/conditional-header";
-import { Toaster } from "sonner";
 import QueryProvider from "@/providers/query-client";
 
 const geistSans = Geist({
@@ -30,19 +29,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ConditionalHeader />
         <QueryProvider>
+          <ConditionalHeader />
           {/* <AuthProvider> */}
           {children}
           {/* </AuthProvider> */}
         </QueryProvider>
 
-        <Toaster
-          position="top-right"
-          richColors
-          theme="light"
-          duration={3000}
-        />
+        {/* Temporarily disabled due to React 19 compatibility issue */}
+        {/* <Toaster /> */}
       </body>
     </html>
   );

@@ -10,6 +10,7 @@ import { Users, Shield, BarChart3 } from "lucide-react";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-muted">
+      {/* Hero Section */}
       <main className="container mx-auto px-4 py-16">
         <div className="text-center space-y-6 mb-16">
           <h2 className="text-4xl font-bold text-foreground">
@@ -24,13 +25,14 @@ export default function HomePage() {
               <a href="/register">Start Free Trial</a>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="/login">Sign In</a>
+              <a href="/employees">View Employees</a>
             </Button>
           </div>
         </div>
 
+        {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
             <CardHeader>
               <Users className="h-8 w-8 text-primary mb-2" />
               <CardTitle>Employee Management</CardTitle>
@@ -41,7 +43,7 @@ export default function HomePage() {
             </CardHeader>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
             <CardHeader>
               <Shield className="h-8 w-8 text-accent mb-2" />
               <CardTitle>Secure & Compliant</CardTitle>
@@ -52,7 +54,7 @@ export default function HomePage() {
             </CardHeader>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
             <CardHeader>
               <BarChart3 className="h-8 w-8 text-secondary mb-2" />
               <CardTitle>Analytics & Reports</CardTitle>

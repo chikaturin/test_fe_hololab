@@ -1,4 +1,6 @@
 import axiosInstance from "@/lib/axios";
+import { User } from "@/types/entities/user";
+import Cookies from "js-cookie";
 
 export interface LoginRequest {
   email: string;
@@ -15,14 +17,9 @@ export interface LogoutRequest {
 }
 
 export interface AuthResponse {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data?: {
-    accessToken: string;
-    refreshToken: string;
-    sessionId: string;
-  };
+  accessToken: string;
+  refreshToken: string;
+  sessionId: string;
 }
 
 export const authService = {
@@ -47,6 +44,16 @@ export const authService = {
       "/auth/logout",
       data
     );
+    return response.data;
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    const response = await axiosInstance.get("/auth", {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("token")}`,
+        "x-session-id": Cookies.get("sessionId"),
+      },
+    });
     return response.data;
   },
 };

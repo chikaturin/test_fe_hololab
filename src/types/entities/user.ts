@@ -15,16 +15,9 @@ export interface UserRole {
 
 export interface User {
   id: string;
-  name: string;
   username: string;
   email: string;
-  phone: string | null;
-  avatarUrl: string | null;
-  gender: string | null;
-  dateOfBirth: string | null;
-  address: string | null;
   isActive: boolean;
-  lastLogin: string | null;
   createdAt: string;
   updatedAt: string;
   userRoles: UserRole[];
