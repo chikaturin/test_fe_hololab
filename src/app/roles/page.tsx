@@ -235,9 +235,9 @@ export default function RolesPage() {
                 {!searchTerm && (
                   <Button
                     onClick={() => setShowAddForm(true)}
-                    className="bg-primary hover:bg-primary/90"
+                    className="bg-primary hover:bg-primary/90 w-fit"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    {/* <Plus className="h-4 w-4 mr-2" /> */}
                     Add Role
                   </Button>
                 )}

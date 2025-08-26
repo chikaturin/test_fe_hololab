@@ -22,7 +22,6 @@ export default async function EditEmployeePage({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-muted">
-      {/* Breadcrumb Navigation */}
       <div className="border-b border-border bg-muted/30">
         <div className="container mx-auto px-4 py-3">
           <Button variant="ghost" size="sm" asChild>
@@ -37,10 +36,8 @@ export default async function EditEmployeePage({
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* Page Header */}
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-foreground">
               Edit Employee
@@ -50,7 +47,6 @@ export default async function EditEmployeePage({
             </p>
           </div>
 
-          {/* Edit Employee Card */}
           <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
             <CardHeader className="space-y-1">
               <CardTitle className="text-xl font-semibold">
