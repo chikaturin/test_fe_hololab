@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { Button } from "../ui/button";
 import { useGetCurrentUser } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Link from "next/link";
 
 export default function Header() {
   const { data: authData } = useGetCurrentUser();
@@ -33,7 +34,7 @@ export default function Header() {
               </Avatar>
             )}
             <Button size="lg" variant="outline" className="bg-white" asChild>
-              <a href="">Start</a>
+              <Link href="/">Start</Link>
             </Button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,33 +13,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
-  Calendar,
-  DollarSign,
-} from "lucide-react";
+import { User, Mail, Phone, MapPin, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useGetAllDepartment } from "@/hooks/use-departments";
+import { useCreateStaff } from "@/hooks/use-staffs";
+import { Department } from "@/services/department.service";
+import { Calendar28 } from "@/components/ui/picker-date";
 
-export function AddEmployeeForm() {
+export function AddStaffForm() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    email: "",
+    dob: "",
     phone: "",
     address: "",
-    position: "",
-    department: "",
-    salary: "",
-    startDate: "",
-    employeeId: "",
-    notes: "",
+    departmentId: "",
+    jobTitle: "",
+    hireDate: "",
+    email: "",
+    password: "staff@123",
+    salary: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { data: departments } = useGetAllDepartment();
+  const { mutate: createStaff } = useCreateStaff();
+  const departmentList = useMemo(() => {
+    if (!departments) return [] as Department[];
+    const payload = departments as Department[] | { data: Department[] };
+    return Array.isArray(payload) ? payload : payload.data;
+  }, [departments]);
+
+  useEffect(() => {
+    console.log(departments);
+  }, [departments]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -49,32 +56,31 @@ export function AddEmployeeForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
+    createStaff(formData);
+
     setTimeout(() => {
       setIsLoading(false);
       toast(
         `${formData.firstName} ${formData.lastName} has been added to the system.`
       );
-      // Reset form
       setFormData({
         firstName: "",
         lastName: "",
+        dob: "",
         email: "",
         phone: "",
         address: "",
-        position: "",
-        department: "",
-        salary: "",
-        startDate: "",
-        employeeId: "",
-        notes: "",
+        departmentId: "",
+        jobTitle: "",
+        hireDate: "",
+        password: "staff@123",
+        salary: 0,
       });
     }, 1500);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Personal Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
           Personal Information
@@ -174,7 +180,6 @@ export function AddEmployeeForm() {
         </div>
       </div>
 
-      {/* Employment Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
           Employment Information
@@ -182,32 +187,28 @@ export function AddEmployeeForm() {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="employeeId" className="text-sm font-medium">
-              Employee ID
+            <Label htmlFor="dob" className="text-sm font-medium">
+              Date of Birth
             </Label>
-            <Input
-              id="employeeId"
-              type="text"
-              placeholder="Enter employee ID"
-              value={formData.employeeId}
-              onChange={(e) => handleInputChange("employeeId", e.target.value)}
-              className="bg-input border-border focus:ring-2 focus:ring-ring"
-              required
+            <Calendar28
+              id="dob"
+              value={formData.dob}
+              onChange={(value) => handleInputChange("dob", value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="position" className="text-sm font-medium">
-              Position
+            <Label htmlFor="jobTitle" className="text-sm font-medium">
+              Job Title
             </Label>
             <div className="relative">
               <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                id="position"
+                id="jobTitle"
                 type="text"
-                placeholder="Enter job position"
-                value={formData.position}
-                onChange={(e) => handleInputChange("position", e.target.value)}
+                placeholder="Enter job title"
+                value={formData.jobTitle}
+                onChange={(e) => handleInputChange("jobTitle", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
                 required
               />
@@ -217,86 +218,68 @@ export function AddEmployeeForm() {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
+            <Label htmlFor="hireDate" className="text-sm font-medium">
+              Hire Date
+            </Label>
+            <div className="relative">
+              <Calendar28
+                id="hireDate"
+                value={formData.hireDate}
+                onChange={(value) => handleInputChange("hireDate", value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="department" className="text-sm font-medium">
               Department
             </Label>
             <Select
-              onValueChange={(value) => handleInputChange("department", value)}
+              onValueChange={(value) =>
+                handleInputChange("departmentId", value)
+              }
               required
             >
-              <SelectTrigger className="bg-input border-border focus:ring-2 focus:ring-ring">
+              <SelectTrigger className="bg-input w-full border-border focus:ring-2 focus:ring-ring">
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hr">Human Resources</SelectItem>
-                <SelectItem value="it">Information Technology</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="marketing">Marketing</SelectItem>
-                <SelectItem value="sales">Sales</SelectItem>
-                <SelectItem value="operations">Operations</SelectItem>
-                <SelectItem value="legal">Legal</SelectItem>
+                {departmentList?.map((department: Department) => (
+                  <SelectItem
+                    key={department._id}
+                    value={String(department._id)}
+                  >
+                    {department.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="salary" className="text-sm font-medium">
-              Salary
-            </Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="salary"
-                type="number"
-                placeholder="Enter annual salary"
-                value={formData.salary}
-                onChange={(e) => handleInputChange("salary", e.target.value)}
-                className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="startDate" className="text-sm font-medium">
-            Start Date
-          </Label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="startDate"
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => handleInputChange("startDate", e.target.value)}
-              className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
-              required
-            />
           </div>
         </div>
       </div>
 
-      {/* Additional Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
           Additional Information
         </h3>
-
         <div className="space-y-2">
-          <Label htmlFor="notes" className="text-sm font-medium">
-            Notes (Optional)
+          <Label htmlFor="salary" className="text-sm font-medium">
+            Salary
           </Label>
-          <Textarea
-            id="notes"
-            placeholder="Enter any additional notes or comments"
-            value={formData.notes}
-            onChange={(e) => handleInputChange("notes", e.target.value)}
-            className="bg-input border-border focus:ring-2 focus:ring-ring min-h-[100px]"
+          <Input
+            id="salary"
+            type="number"
+            placeholder="Enter salary"
+            value={formData.salary}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                salary: Number(e.target.value || 0),
+              }))
+            }
           />
         </div>
       </div>
 
-      {/* Form Actions */}
       <div className="flex gap-4 pt-4">
         <Button
           type="submit"

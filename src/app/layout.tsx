@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConditionalHeader } from "@/components/layout/conditional-header";
 import QueryProvider from "@/providers/query-client";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,8 +37,7 @@ export default function RootLayout({
           {/* </AuthProvider> */}
         </QueryProvider>
 
-        {/* Temporarily disabled due to React 19 compatibility issue */}
-        {/* <Toaster /> */}
+        <Toaster position="top-right" />
       </body>
     </html>
   );

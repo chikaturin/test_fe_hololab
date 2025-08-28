@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,76 +14,35 @@ import {
 } from "@/components/ui/table";
 import { Edit, Trash2, Mail, Phone, Briefcase, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useGetAllStaff } from "@/hooks/use-staffs";
+import Spinner from "../layout/spinner";
+import { Staff } from "@/services/staff.service";
 
-// Mock employee data
-const mockEmployees = [
-  {
-    id: "EMP001",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@company.com",
-    phone: "+1 (555) 123-4567",
-    position: "Software Engineer",
-    department: "Information Technology",
-    salary: 75000,
-    startDate: "2023-01-15",
-    status: "Active",
-  },
-  {
-    id: "EMP002",
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@company.com",
-    phone: "+1 (555) 234-5678",
-    position: "HR Manager",
-    department: "Human Resources",
-    salary: 85000,
-    startDate: "2022-08-20",
-    status: "Active",
-  },
-  {
-    id: "EMP003",
-    firstName: "Mike",
-    lastName: "Johnson",
-    email: "mike.johnson@company.com",
-    phone: "+1 (555) 345-6789",
-    position: "Marketing Specialist",
-    department: "Marketing",
-    salary: 65000,
-    startDate: "2023-03-10",
-    status: "Active",
-  },
-  {
-    id: "EMP004",
-    firstName: "Sarah",
-    lastName: "Wilson",
-    email: "sarah.wilson@company.com",
-    phone: "+1 (555) 456-7890",
-    position: "Financial Analyst",
-    department: "Finance",
-    salary: 70000,
-    startDate: "2022-11-05",
-    status: "On Leave",
-  },
-];
-
-export function EmployeeList() {
-  const [employees, setEmployees] = useState(mockEmployees);
+export function StaffList() {
+  const { data: staffData, isLoading } = useGetAllStaff();
+  const [staffs, setStaff] = useState<Staff[]>([]);
   const { toast } = useToast();
 
-  const handleEdit = (employeeId: string) => {
-    // Navigate to edit page (will be implemented in next task)
-    window.location.href = `/employees/edit/${employeeId}`;
+  useEffect(() => {
+    if (!staffData) return;
+    type StaffPayload = Staff[] | { data: Staff[] };
+    const payload = staffData as unknown as StaffPayload;
+    const list = Array.isArray(payload) ? payload : payload.data;
+    setStaff(list);
+  }, [staffData]);
+
+  const handleEdit = (staffId: string) => {
+    window.location.href = `/staffs/edit/${staffId}`;
   };
 
-  const handleDelete = (employeeId: string, employeeName: string) => {
+  const handleDelete = (staffId: string, staffName: string) => {
     if (
       confirm(
-        `Are you sure you want to delete ${employeeName}? This action cannot be undone.`
+        `Are you sure you want to delete ${staffName}? This action cannot be undone.`
       )
     ) {
-      setEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
-      toast(`${employeeName} has been removed from the system.`);
+      setStaff((prev) => prev?.filter((emp) => emp._id !== staffId));
+      toast(`${staffName} has been removed from the system.`);
     }
   };
 
@@ -93,12 +52,6 @@ export function EmployeeList() {
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             Active
-          </Badge>
-        );
-      case "On Leave":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-            On Leave
           </Badge>
         );
       case "Inactive":
@@ -112,16 +65,16 @@ export function EmployeeList() {
     }
   };
 
-  const formatSalary = (salary: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(salary);
-  };
+  // const formatSalary = (salary: number) => {
+  //   return new Intl.NumberFormat("en-US", {
+  //     style: "currency",
+  //     currency: "USD",
+  //     minimumFractionDigits: 0,
+  //     maximumFractionDigits: 0,
+  //   }).format(salary);
+  // };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -129,28 +82,32 @@ export function EmployeeList() {
     });
   };
 
+  if (isLoading) {
+    return <Spinner />;
+  }
+
   return (
     <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Employee Directory</span>
           <Badge variant="secondary" className="text-sm">
-            {employees.length} Total Employees
+            {staffs?.length} Total Employees
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {employees.length === 0 ? (
+        {staffs?.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">
               <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">No employees found</p>
+              <p className="text-lg font-medium">No staff found</p>
               <p className="text-sm">
-                Start by adding your first employee to the system.
+                Start by adding your first staff to the system.
               </p>
             </div>
             <Button asChild className="mt-4">
-              <a href="/employees/add">Add First Employee</a>
+              <a href="/staff/add">Add First Employee</a>
             </Button>
           </div>
         ) : (
@@ -169,15 +126,15 @@ export function EmployeeList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.id} className="hover:bg-muted/50">
+                {staffs?.map((staff) => (
+                  <TableRow key={staff._id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium text-foreground">
-                          {employee.firstName} {employee.lastName}
+                          {staff.firstName} {staff.lastName}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          ID: {employee.id}
+                          ID: {staff._id}
                         </div>
                       </div>
                     </TableCell>
@@ -186,13 +143,13 @@ export function EmployeeList() {
                         <div className="flex items-center space-x-2 text-sm">
                           <Mail className="h-3 w-3 text-muted-foreground" />
                           <span className="text-muted-foreground">
-                            {employee.email}
+                            {staff.email}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2 text-sm">
                           <Phone className="h-3 w-3 text-muted-foreground" />
                           <span className="text-muted-foreground">
-                            {employee.phone}
+                            {staff.phone}
                           </span>
                         </div>
                       </div>
@@ -200,30 +157,28 @@ export function EmployeeList() {
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{employee.position}</span>
+                        <span className="font-medium">{staff.jobTitle}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{employee.department}</Badge>
+                      <Badge variant="outline">{staff.departmentId.name}</Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
-                        {formatSalary(employee.salary)}
-                      </span>
+                      <span className="font-medium">—</span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2 text-sm">
                         <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <span>{formatDate(employee.startDate)}</span>
+                        <span>{formatDate(staff.hireDate)}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(employee.status)}</TableCell>
+                    <TableCell>{getStatusBadge("Active")}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleEdit(employee.id)}
+                          onClick={() => handleEdit(staff._id)}
                           className="h-8 w-8 p-0"
                         >
                           <Edit className="h-4 w-4" />
@@ -233,8 +188,8 @@ export function EmployeeList() {
                           size="sm"
                           onClick={() =>
                             handleDelete(
-                              employee.id,
-                              `${employee.firstName} ${employee.lastName}`
+                              staff._id,
+                              `${staff.firstName} ${staff.lastName}`
                             )
                           }
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive"

@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Users, Building2, Shield, UserCheck } from "lucide-react";
+import { Users, Building2, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default function ManagementPage() {
@@ -21,17 +21,16 @@ export default function ManagementPage() {
           </p>
         </div>
 
-        {/* Management Sections Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Link href="/employees" className="group">
+        <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
+          <Link href="/staffs" className="group">
             <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <CardHeader className="text-center space-y-4">
                 <div className="mx-auto p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl">Employee Management</CardTitle>
+                <CardTitle className="text-xl">staff Management</CardTitle>
                 <CardDescription className="text-center">
-                  Add, edit, and manage employee profiles, personal information,
+                  Add, edit, and manage staff profiles, personal information,
                   and employment details.
                 </CardDescription>
               </CardHeader>
@@ -67,28 +66,12 @@ export default function ManagementPage() {
               </CardHeader>
             </Card>
           </Link>
-
-          <Link href="/assignments" className="group">
-            <Card className="bg-card/80 backdrop-blur-sm border-0 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-              <CardHeader className="text-center space-y-4">
-                <div className="mx-auto p-4 bg-emerald-500/10 rounded-full group-hover:bg-emerald-500/20 transition-colors">
-                  <UserCheck className="h-8 w-8 text-emerald-600" />
-                </div>
-                <CardTitle className="text-xl">Assignment Management</CardTitle>
-                <CardDescription className="text-center">
-                  Assign employees to departments and roles, manage bulk
-                  assignments and transfers.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
         </div>
 
-        {/* Quick Stats Section */}
         <div className="mt-16 grid md:grid-cols-4 gap-4">
           <div className="text-center p-6 bg-card/50 rounded-lg">
             <div className="text-2xl font-bold text-primary">24</div>
-            <div className="text-sm text-muted-foreground">Total Employees</div>
+            <div className="text-sm text-muted-foreground">Total staffs</div>
           </div>
           <div className="text-center p-6 bg-card/50 rounded-lg">
             <div className="text-2xl font-bold text-accent">8</div>
