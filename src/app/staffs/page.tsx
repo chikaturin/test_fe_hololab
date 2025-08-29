@@ -2,6 +2,7 @@ import { StaffList } from "@/components/staff/staff-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
+import Link from "next/link";
 
 export default function StaffsPage() {
   return (
@@ -21,10 +22,10 @@ export default function StaffsPage() {
               asChild
               className="bg-primary hover:bg-primary/90 text-primary-foreground w-fit"
             >
-              <a href="/staffs/add" className="flex items-center space-x-2">
+              <Link href="/staffs/add" className="flex items-center space-x-2">
                 <Plus className="h-4 w-4" />
                 <span>Add Staff</span>
-              </a>
+              </Link>
             </Button>
           </div>
 

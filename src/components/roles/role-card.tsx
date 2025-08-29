@@ -10,63 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Edit, Trash2, Users, Settings } from "lucide-react";
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  userCount: number;
-  level: "low" | "medium" | "high";
-  createdAt: string;
-}
-
-const availablePermissions = [
-  {
-    id: "view_employees",
-    label: "View Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "add_employees",
-    label: "Add Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "edit_employees",
-    label: "Edit Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "delete_employees",
-    label: "Delete Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "view_departments",
-    label: "View Departments",
-    category: "Department Management",
-  },
-  {
-    id: "manage_departments",
-    label: "Manage Departments",
-    category: "Department Management",
-  },
-  { id: "view_roles", label: "View Roles", category: "Role Management" },
-  { id: "manage_roles", label: "Manage Roles", category: "Role Management" },
-  { id: "view_reports", label: "View Reports", category: "Reporting" },
-  { id: "generate_reports", label: "Generate Reports", category: "Reporting" },
-  {
-    id: "system_settings",
-    label: "System Settings",
-    category: "Administration",
-  },
-  {
-    id: "user_management",
-    label: "User Management",
-    category: "Administration",
-  },
-];
+import { type Role } from "@/services/role.service";
 
 interface RoleCardProps {
   role: Role;
@@ -103,41 +47,38 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
           </div>
           <div className="flex gap-1">
             <Button
-              variant="ghost"
               size="sm"
               onClick={() => onEdit(role)}
-              className="h-8 w-8 p-0 hover:bg-primary/10"
+              className="h-8 w-8 p-0 "
             >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDelete(role.id)}
+              onClick={() => onDelete(role._id)}
               className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-              disabled={role.userCount > 0}
+              disabled={role.usersCount > 0}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <CardDescription className="text-sm">
-          {role.description}
-        </CardDescription>
+        <CardDescription className="text-sm">{role.roleType}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Users:</span>
           <Badge variant="secondary" className="flex items-center gap-1">
             <Users className="h-3 w-3" />
-            {role.userCount}
+            {role.usersCount}
           </Badge>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Permissions:</span>
           <Badge variant="outline" className="flex items-center gap-1">
             <Settings className="h-3 w-3" />
-            {role.permissions.length}
+            {role.permissionsCount}
           </Badge>
         </div>
         <div className="pt-2">
@@ -145,17 +86,12 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
             Key Permissions:
           </span>
           <div className="flex flex-wrap gap-1 mt-1">
-            {role.permissions.slice(0, 3).map((permId) => {
-              const perm = availablePermissions.find((p) => p.id === permId);
-              return perm ? (
-                <Badge key={permId} variant="secondary" className="text-xs">
-                  {perm.label}
-                </Badge>
-              ) : null;
+            {role.keyPermissions.slice(0, 5).map((permId) => {
+              return <Badge key={permId}>{permId}</Badge>;
             })}
-            {role.permissions.length > 3 && (
+            {role.keyPermissions.length > 3 && (
               <Badge variant="secondary" className="text-xs">
-                +{role.permissions.length - 3} more
+                +{role.keyPermissions.length - 3} more
               </Badge>
             )}
           </div>

@@ -41,11 +41,11 @@ export interface StaffResponse {
 export interface updateStaff {
   firstName: string;
   lastName: string;
-  dob: string;
   phone: string;
   address: string;
-  salary: number;
   departmentId: string;
+  email: string;
+  salary: number;
 }
 
 export const staffService = {
@@ -64,10 +64,16 @@ export const staffService = {
   },
 
   getStaffById: async (id: string): Promise<Staff> => {
-    const response = await axiosInstance.get<StaffResponse>(`/staff/${id}`, {
-      headers: headersApi,
-    });
-    return response.data.data; // return Staff directly
+    try {
+      const response = await axiosInstance.get<Staff>(`/staff/${id}`, {
+        headers: headersApi,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching staff by ID:", error);
+      throw error;
+    }
   },
 
   deleteStaff: async (id: string): Promise<StaffResponse> => {
@@ -81,7 +87,7 @@ export const staffService = {
     id: string,
     data: updateStaff
   ): Promise<StaffResponse> => {
-    const response = await axiosInstance.put<StaffResponse>(
+    const response = await axiosInstance.patch<StaffResponse>(
       `/staff/${id}`,
       data,
       {

@@ -34,9 +34,17 @@ interface Calendar28Props {
   id: string;
   value: string;
   onChange: (date: string) => void;
+  kind?: "hire" | "dob";
+  defaultToNow?: boolean;
 }
 
-export function Calendar28({ id, value, onChange }: Calendar28Props) {
+export function Calendar28({
+  id,
+  value,
+  onChange,
+  kind,
+  defaultToNow,
+}: Calendar28Props) {
   const [open, setOpen] = React.useState(false);
 
   const derivedDate = React.useMemo(() => parseDate(value), [value]);
@@ -45,6 +53,48 @@ export function Calendar28({ id, value, onChange }: Calendar28Props) {
   React.useEffect(() => {
     if (derivedDate) setMonth(derivedDate);
   }, [derivedDate]);
+
+  const today = React.useMemo(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }, []);
+
+  const { fromDate, toDate, disabled } = React.useMemo((): {
+    fromDate: Date | undefined;
+    toDate: Date | undefined;
+    disabled: ((date: Date) => boolean) | undefined;
+  } => {
+    if (kind === "hire") {
+      const start = today;
+      return {
+        fromDate: start,
+        toDate: undefined,
+        disabled: (date: Date) => date < start,
+      };
+    }
+    if (kind === "dob") {
+      const maxDob = new Date(today);
+      maxDob.setFullYear(maxDob.getFullYear() - 18);
+      return {
+        fromDate: undefined,
+        toDate: maxDob,
+        disabled: (date: Date) => date > maxDob,
+      };
+    }
+    return { fromDate: undefined, toDate: undefined, disabled: undefined };
+  }, [kind, today]);
+
+  React.useEffect(() => {
+    if (defaultToNow && !value) {
+      onChange(formatDate(today));
+      setMonth(today);
+    }
+    if (kind === "dob" && !value) {
+      const janFirst18 = new Date(today.getFullYear() - 18, 0, 1);
+      onChange(formatDate(janFirst18));
+      setMonth(janFirst18);
+    }
+  }, [defaultToNow, today, value, onChange, kind]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -83,7 +133,7 @@ export function Calendar28({ id, value, onChange }: Calendar28Props) {
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-auto overflow-hidden p-0"
+            className="w-auto overflow-hidden p-0 "
             align="end"
             alignOffset={-8}
             sideOffset={10}
@@ -94,6 +144,9 @@ export function Calendar28({ id, value, onChange }: Calendar28Props) {
               captionLayout="dropdown"
               month={month}
               onMonthChange={setMonth}
+              fromDate={fromDate}
+              toDate={toDate}
+              disabled={disabled}
               onSelect={(date) => {
                 const formatted = formatDate(date ?? undefined);
                 onChange(formatted);

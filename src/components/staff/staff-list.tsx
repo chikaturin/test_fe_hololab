@@ -17,12 +17,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useGetAllStaff, useDeleteStaff } from "@/hooks/use-staffs";
 import Spinner from "../layout/spinner";
 import { Staff } from "@/services/staff.service";
+import { formatSalary } from "@/hooks/use-format-salary";
+import { useRouter } from "next/navigation";
 
 export function StaffList() {
   const { data: staffData, isLoading } = useGetAllStaff();
   const [staffs, setStaff] = useState<Staff[]>([]);
   const { toast } = useToast();
   const { mutate: deleteStaff } = useDeleteStaff();
+  const router = useRouter();
   useEffect(() => {
     if (!staffData) return;
     type StaffPayload = Staff[] | { data: Staff[] };
@@ -32,7 +35,7 @@ export function StaffList() {
   }, [staffData]);
 
   const handleEdit = (staffId: string) => {
-    window.location.href = `/staffs/edit/${staffId}`;
+    router.push(`/staffs/edit/${staffId}`);
   };
 
   const handleDelete = (staffId: string, staffName: string) => {
@@ -64,15 +67,6 @@ export function StaffList() {
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
-  };
-
-  const formatSalary = (salary: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(salary);
   };
 
   const formatDate = (dateString: string | Date) => {
@@ -162,7 +156,9 @@ export function StaffList() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{staff.departmentId.name}</Badge>
+                      <Badge variant="outline">
+                        {staff.departmentId?.name}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">

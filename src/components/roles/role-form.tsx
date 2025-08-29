@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,101 +13,81 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  userCount: number;
-  level: "low" | "medium" | "high";
-  createdAt: string;
-}
-
-const availablePermissions = [
-  {
-    id: "view_employees",
-    label: "View Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "add_employees",
-    label: "Add Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "edit_employees",
-    label: "Edit Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "delete_employees",
-    label: "Delete Employees",
-    category: "Employee Management",
-  },
-  {
-    id: "view_departments",
-    label: "View Departments",
-    category: "Department Management",
-  },
-  {
-    id: "manage_departments",
-    label: "Manage Departments",
-    category: "Department Management",
-  },
-  { id: "view_roles", label: "View Roles", category: "Role Management" },
-  { id: "manage_roles", label: "Manage Roles", category: "Role Management" },
-  { id: "view_reports", label: "View Reports", category: "Reporting" },
-  { id: "generate_reports", label: "Generate Reports", category: "Reporting" },
-  {
-    id: "system_settings",
-    label: "System Settings",
-    category: "Administration",
-  },
-  {
-    id: "user_management",
-    label: "User Management",
-    category: "Administration",
-  },
-];
+import { type Role, type updateRole } from "@/services/role.service";
+import { useGetAllPermissions } from "@/hooks/use-permission";
+import { Permission } from "@/services/permission.service";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useUpdateRole } from "@/hooks/use-roles";
 
 interface RoleFormProps {
   role?: Role | null;
-  onSubmit: (data: unknown) => void;
   onCancel: () => void;
 }
 
-export function RoleForm({ role, onSubmit, onCancel }: RoleFormProps) {
-  const [formData, setFormData] = useState({
+export function RoleForm({ role, onCancel }: RoleFormProps) {
+  const { data: availablePermissions } = useGetAllPermissions();
+  const { mutate: updateRole } = useUpdateRole(role?._id || "");
+  const [formData, setFormData] = useState<updateRole>({
     name: role?.name || "",
-    description: role?.description || "",
-    permissions: role?.permissions || [],
     level: role?.level || ("low" as "low" | "medium" | "high"),
+    permissions: role?.keyPermissions || [],
   });
+
+  useEffect(() => {
+    if (role && availablePermissions) {
+      const permissionIds =
+        role.keyPermissions
+          ?.map((permissionName) => {
+            const permission = availablePermissions.find(
+              (p: Permission) => p.name === permissionName
+            );
+            return permission?._id || permissionName;
+          })
+          .filter(Boolean) || [];
+
+      setFormData({
+        name: role.name || "",
+        level: role.level || "low",
+        permissions: permissionIds,
+      });
+    }
+  }, [role, availablePermissions]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    updateRole(formData);
   };
 
   const handlePermissionChange = (permissionId: string, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
       permissions: checked
-        ? [...prev.permissions, permissionId]
+        ? [...new Set([...prev.permissions, permissionId])] // Remove duplicates
         : prev.permissions.filter((p) => p !== permissionId),
     }));
   };
 
-  const groupedPermissions = availablePermissions.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
-    }
-    acc[permission.category].push(permission);
-    return acc;
-  }, {} as Record<string, typeof availablePermissions>);
+  const groupedPermissions =
+    availablePermissions?.reduce(
+      (
+        acc: Record<string, typeof availablePermissions>,
+        permission: Permission
+      ) => {
+        if (!acc[permission.module]) {
+          acc[permission.module] = [];
+        }
+        acc[permission.module].push(permission);
+        return acc;
+      },
+      {} as Record<string, typeof availablePermissions>
+    ) || {};
 
   return (
     <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
@@ -130,48 +110,32 @@ export function RoleForm({ role, onSubmit, onCancel }: RoleFormProps) {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="e.g., Manager"
+                placeholder={role?.name}
                 required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="level">Access Level</Label>
-              <select
-                id="level"
+              <Select
                 value={formData.level}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    level: e.target.value as "low" | "medium" | "high",
+                    level: value as "low" | "medium" | "high",
                   }))
                 }
-                className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
-                required
               >
-                <option value="low">Low Access</option>
-                <option value="medium">Medium Access</option>
-                <option value="high">High Access</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select access level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low Access</SelectItem>
+                  <SelectItem value="medium">Medium Access</SelectItem>
+                  <SelectItem value="high">High Access</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              placeholder="Brief description of role responsibilities..."
-              rows={3}
-              required
-            />
-          </div>
-
           <div className="space-y-4">
             <Label>Permissions</Label>
             <div className="space-y-4">
@@ -182,31 +146,34 @@ export function RoleForm({ role, onSubmit, onCancel }: RoleFormProps) {
                       {category}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-4">
-                      {permissions.map((permission) => (
-                        <div
-                          key={permission.id}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={permission.id}
-                            checked={formData.permissions.includes(
-                              permission.id
-                            )}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                permission.id,
-                                checked as boolean
-                              )
-                            }
-                          />
-                          <Label
-                            htmlFor={permission.id}
-                            className="text-sm font-normal"
+                      {(permissions as Permission[]).map(
+                        (permission: Permission) => (
+                          <div
+                            key={permission._id}
+                            className="flex items-center space-x-2"
                           >
-                            {permission.label}
-                          </Label>
-                        </div>
-                      ))}
+                            <Checkbox
+                              id={permission._id}
+                              checked={formData.permissions.includes(
+                                permission._id
+                              )}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  permission._id,
+                                  checked as boolean
+                                )
+                              }
+                              className=" border-1 border-primary"
+                            />
+                            <Label
+                              htmlFor={permission._id}
+                              className="text-sm font-normal"
+                            >
+                              {permission.name}
+                            </Label>
+                          </div>
+                        )
+                      )}
                     </div>
                   </div>
                 )
@@ -214,7 +181,7 @@ export function RoleForm({ role, onSubmit, onCancel }: RoleFormProps) {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-end">
             <Button type="submit" className="bg-primary hover:bg-primary/90">
               {role ? "Update Role" : "Add Role"}
             </Button>

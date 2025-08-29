@@ -5,7 +5,11 @@ import { toast } from "sonner";
 export const useGetAllDepartment = () => {
   return useQuery({
     queryKey: ["departments"],
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
     queryFn: departmentService.getAllDepartments,
   });
 };
