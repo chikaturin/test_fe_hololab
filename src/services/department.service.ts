@@ -11,6 +11,7 @@ export interface Department {
 }
 
 export interface SendDepartment {
+  _id?: string;
   name: string;
   description: string;
 }

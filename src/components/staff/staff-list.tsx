@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Edit, Trash2, Mail, Phone, Briefcase, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useGetAllStaff } from "@/hooks/use-staffs";
+import { useGetAllStaff, useDeleteStaff } from "@/hooks/use-staffs";
 import Spinner from "../layout/spinner";
 import { Staff } from "@/services/staff.service";
 
@@ -22,7 +22,7 @@ export function StaffList() {
   const { data: staffData, isLoading } = useGetAllStaff();
   const [staffs, setStaff] = useState<Staff[]>([]);
   const { toast } = useToast();
-
+  const { mutate: deleteStaff } = useDeleteStaff();
   useEffect(() => {
     if (!staffData) return;
     type StaffPayload = Staff[] | { data: Staff[] };
@@ -41,6 +41,7 @@ export function StaffList() {
         `Are you sure you want to delete ${staffName}? This action cannot be undone.`
       )
     ) {
+      deleteStaff(staffId);
       setStaff((prev) => prev?.filter((emp) => emp._id !== staffId));
       toast(`${staffName} has been removed from the system.`);
     }
@@ -65,14 +66,14 @@ export function StaffList() {
     }
   };
 
-  // const formatSalary = (salary: number) => {
-  //   return new Intl.NumberFormat("en-US", {
-  //     style: "currency",
-  //     currency: "USD",
-  //     minimumFractionDigits: 0,
-  //     maximumFractionDigits: 0,
-  //   }).format(salary);
-  // };
+  const formatSalary = (salary: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(salary);
+  };
 
   const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -107,7 +108,7 @@ export function StaffList() {
               </p>
             </div>
             <Button asChild className="mt-4">
-              <a href="/staff/add">Add First Employee</a>
+              <a href="/staffs/add">Add First Employee</a>
             </Button>
           </div>
         ) : (
@@ -164,7 +165,9 @@ export function StaffList() {
                       <Badge variant="outline">{staff.departmentId.name}</Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">—</span>
+                      <span className="font-medium">
+                        {formatSalary(staff.salary)}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2 text-sm">
@@ -192,7 +195,7 @@ export function StaffList() {
                               `${staff.firstName} ${staff.lastName}`
                             )
                           }
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          className="h-8 w-8 hover:bg-red-500 p-0 text-destructive hover:text-white"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

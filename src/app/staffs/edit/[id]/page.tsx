@@ -10,15 +10,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 interface EditEmployeePageProps {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
-export default async function EditEmployeePage({
-  params,
-}: EditEmployeePageProps) {
-  const { id } = await params;
+export default function EditEmployeePage({ params }: EditEmployeePageProps) {
+  const { id } = params;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-muted">
@@ -26,7 +24,7 @@ export default async function EditEmployeePage({
         <div className="container mx-auto px-4 py-3">
           <Button variant="ghost" size="sm" asChild>
             <a
-              href="/staff"
+              href="/staffs"
               className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />

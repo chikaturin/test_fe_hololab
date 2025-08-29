@@ -1,5 +1,5 @@
 import { Building2 } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { Button } from "../ui/button";
 import { useGetCurrentUser } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -7,9 +7,6 @@ import Link from "next/link";
 
 export default function Header() {
   const { data: authData } = useGetCurrentUser();
-  useEffect(() => {
-    console.log("Auth data:", authData?.email);
-  }, [authData]);
 
   return (
     <div>

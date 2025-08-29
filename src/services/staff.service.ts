@@ -14,6 +14,7 @@ export interface Staff {
   hireDate: string;
   email: string;
   password: string;
+  salary: number;
 }
 
 export interface sendStaff {
@@ -37,32 +38,56 @@ export interface StaffResponse {
   data: Staff;
 }
 
+export interface updateStaff {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  phone: string;
+  address: string;
+  salary: number;
+  departmentId: string;
+}
+
 export const staffService = {
-  createStaff: async (data: sendStaff) => {
+  createStaff: async (data: sendStaff): Promise<StaffResponse> => {
     const response = await axiosInstance.post<StaffResponse>("/staff", data, {
       headers: headersApi,
     });
     return response.data;
   },
 
-  getAllStaff: async () => {
+  getAllStaff: async (): Promise<StaffResponse> => {
     const response = await axiosInstance.get<StaffResponse>("/staff", {
       headers: headersApi,
     });
     return response.data;
   },
 
-  getStaffById: async (id: string) => {
+  getStaffById: async (id: string): Promise<Staff> => {
     const response = await axiosInstance.get<StaffResponse>(`/staff/${id}`, {
+      headers: headersApi,
+    });
+    return response.data.data; // return Staff directly
+  },
+
+  deleteStaff: async (id: string): Promise<StaffResponse> => {
+    const response = await axiosInstance.delete<StaffResponse>(`/staff/${id}`, {
       headers: headersApi,
     });
     return response.data;
   },
 
-  deleteStaff: async (id: string) => {
-    const response = await axiosInstance.delete<StaffResponse>(`/staff/${id}`, {
-      headers: headersApi,
-    });
+  updateStaff: async (
+    id: string,
+    data: updateStaff
+  ): Promise<StaffResponse> => {
+    const response = await axiosInstance.put<StaffResponse>(
+      `/staff/${id}`,
+      data,
+      {
+        headers: headersApi,
+      }
+    );
     return response.data;
   },
 };

@@ -13,74 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
-  Calendar,
-  DollarSign,
-} from "lucide-react";
+import { User, Mail, Phone, MapPin, Briefcase, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock employee data - in real app this would come from API
-const mockEmployeeData = {
-  EMP001: {
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@company.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, Anytown, ST 12345",
-    position: "Software Engineer",
-    department: "it",
-    salary: "75000",
-    startDate: "2023-01-15",
-    employeeId: "EMP001",
-    notes:
-      "Excellent performance in Q1 and Q2. Team lead for mobile app project.",
-  },
-  EMP002: {
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@company.com",
-    phone: "+1 (555) 234-5678",
-    address: "456 Oak Ave, Somewhere, ST 67890",
-    position: "HR Manager",
-    department: "hr",
-    salary: "85000",
-    startDate: "2022-08-20",
-    employeeId: "EMP002",
-    notes: "Leading HR transformation initiative. Great mentor for new hires.",
-  },
-  EMP003: {
-    firstName: "Mike",
-    lastName: "Johnson",
-    email: "mike.johnson@company.com",
-    phone: "+1 (555) 345-6789",
-    address: "789 Pine Rd, Elsewhere, ST 13579",
-    position: "Marketing Specialist",
-    department: "marketing",
-    salary: "65000",
-    startDate: "2023-03-10",
-    employeeId: "EMP003",
-    notes:
-      "Creative campaigns increased engagement by 40%. Social media expert.",
-  },
-  EMP004: {
-    firstName: "Sarah",
-    lastName: "Wilson",
-    email: "sarah.wilson@company.com",
-    phone: "+1 (555) 456-7890",
-    address: "321 Elm St, Nowhere, ST 24680",
-    position: "Financial Analyst",
-    department: "finance",
-    salary: "70000",
-    startDate: "2022-11-05",
-    employeeId: "EMP004",
-    notes: "Currently on maternity leave. Expected return date: March 2024.",
-  },
-};
+import { useGetStaffById, useUpdateStaff } from "@/hooks/use-staffs";
+import { SendDepartment } from "@/services/department.service";
 
 interface EditEmployeeFormProps {
   employeeId: string;
@@ -97,30 +33,37 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
     department: "",
     salary: "",
     startDate: "",
-    employeeId: "",
     notes: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const loadEmployeeData = () => {
-      // Simulate API call to fetch employee data
-      setTimeout(() => {
-        const employeeData =
-          mockEmployeeData[employeeId as keyof typeof mockEmployeeData];
-        if (employeeData) {
-          setFormData(employeeData);
-        } else {
-          toast("The requested employee could not be found.");
-        }
-        setIsLoadingData(false);
-      }, 1000);
-    };
+  const { data, isLoading } = useGetStaffById(employeeId);
+  const { mutate: updateStaff } = useUpdateStaff();
 
-    loadEmployeeData();
-  }, [employeeId, toast]);
+  useEffect(() => {
+    const s = data;
+    if (!s) return;
+    setFormData({
+      firstName: s.firstName ?? "",
+      lastName: s.lastName ?? "",
+      email: s.email ?? "",
+      phone: s.phone ?? "",
+      address: s.address ?? "",
+      position: s.jobTitle ?? "",
+      department:
+        typeof s.departmentId === "string"
+          ? (s.departmentId as unknown as string)
+          : (s.departmentId as SendDepartment)?._id ?? "",
+      salary: String(s.salary ?? ""),
+      startDate: s.hireDate ?? "",
+      notes: "",
+    });
+  }, [data]);
+
+  useEffect(() => {
+    console.log("data", data);
+  }, [data]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -128,20 +71,38 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast(
-        `${formData.firstName} ${formData.lastName}'s information has been updated.`
-      );
-      // Navigate back to employee list
-      window.location.href = "/employees";
-    }, 1500);
+    updateStaff(
+      {
+        id: employeeId,
+        data: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          dob: "", // not present in form
+          phone: formData.phone,
+          address: formData.address,
+          departmentId: formData.department,
+          jobTitle: formData.position,
+          hireDate: formData.startDate,
+          email: formData.email,
+          password: "", // not edited here
+          salary: Number(formData.salary || 0),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Employee updated successfully");
+        },
+        onError: () => {
+          toast.error("Failed to update employee");
+        },
+        onSettled: () => setIsSubmitting(false),
+      }
+    );
   };
 
-  if (isLoadingData) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
@@ -170,7 +131,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               <Input
                 id="firstName"
                 type="text"
-                placeholder="Enter first name"
+                placeholder={data?.firstName}
                 value={formData.firstName}
                 onChange={(e) => handleInputChange("firstName", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
@@ -188,7 +149,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               <Input
                 id="lastName"
                 type="text"
-                placeholder="Enter last name"
+                placeholder={data?.lastName}
                 value={formData.lastName}
                 onChange={(e) => handleInputChange("lastName", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
@@ -208,7 +169,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter email address"
+                placeholder={data?.email}
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
@@ -226,7 +187,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="Enter phone number"
+                placeholder={data?.phone}
                 value={formData.phone}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
@@ -244,7 +205,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
             <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Textarea
               id="address"
-              placeholder="Enter full address"
+              placeholder={data?.address}
               value={formData.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
               className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring min-h-[80px]"
@@ -262,22 +223,6 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="employeeId" className="text-sm font-medium">
-              Employee ID
-            </Label>
-            <Input
-              id="employeeId"
-              type="text"
-              placeholder="Enter employee ID"
-              value={formData.employeeId}
-              onChange={(e) => handleInputChange("employeeId", e.target.value)}
-              className="bg-input border-border focus:ring-2 focus:ring-ring"
-              required
-              disabled
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="position" className="text-sm font-medium">
               Position
             </Label>
@@ -286,7 +231,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               <Input
                 id="position"
                 type="text"
-                placeholder="Enter job position"
+                placeholder={data?.jobTitle}
                 value={formData.position}
                 onChange={(e) => handleInputChange("position", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
@@ -294,9 +239,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               />
             </div>
           </div>
-        </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="department" className="text-sm font-medium">
               Department
@@ -320,7 +263,9 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               </SelectContent>
             </Select>
           </div>
+        </div>
 
+        <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="salary" className="text-sm font-medium">
               Salary
@@ -330,30 +275,13 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
               <Input
                 id="salary"
                 type="number"
-                placeholder="Enter annual salary"
+                placeholder={String(data?.salary)}
                 value={formData.salary}
                 onChange={(e) => handleInputChange("salary", e.target.value)}
                 className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
                 required
               />
             </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="startDate" className="text-sm font-medium">
-            Start Date
-          </Label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="startDate"
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => handleInputChange("startDate", e.target.value)}
-              className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring"
-              required
-            />
           </div>
         </div>
       </div>
@@ -363,19 +291,6 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
         <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
           Additional Information
         </h3>
-
-        <div className="space-y-2">
-          <Label htmlFor="notes" className="text-sm font-medium">
-            Notes (Optional)
-          </Label>
-          <Textarea
-            id="notes"
-            placeholder="Enter any additional notes or comments"
-            value={formData.notes}
-            onChange={(e) => handleInputChange("notes", e.target.value)}
-            className="bg-input border-border focus:ring-2 focus:ring-ring min-h-[100px]"
-          />
-        </div>
       </div>
 
       {/* Form Actions */}
@@ -383,15 +298,15 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
         <Button
           type="submit"
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5"
-          disabled={isLoading}
+          disabled={isSubmitting}
         >
-          {isLoading ? "Updating Employee..." : "Update Employee"}
+          {isSubmitting ? "Updating Employee..." : "Update Employee"}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="flex-1 bg-transparent"
-          onClick={() => (window.location.href = "/employees")}
+          onClick={() => (window.location.href = "/staffs")}
         >
           Cancel
         </Button>
