@@ -91,7 +91,7 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
             })}
             {role.keyPermissions.length > 3 && (
               <Badge variant="secondary" className="text-xs">
-                +{role.keyPermissions.length - 3} more
+                +{role.keyPermissions.length - 5} more
               </Badge>
             )}
           </div>

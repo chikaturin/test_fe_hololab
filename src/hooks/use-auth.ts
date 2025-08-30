@@ -10,6 +10,8 @@ import type {
   RefreshTokenRequest,
 } from "@/services/auth.service";
 import { User } from "@/types/entities/user";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 export const useLogin = () => {
   const router = useRouter();
@@ -80,15 +82,89 @@ export const useLogout = () => {
 };
 
 export const useGetCurrentUser = () => {
+  const token = Cookies.get("token");
+
   return useQuery({
     queryKey: ["auth"],
     queryFn: authService.getCurrentUser,
-    enabled: !!Cookies.get("token"),
+    enabled: !!token,
     select: (data: User) => data,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
+    retry: false,
   });
+};
+
+export const useAuthCheck = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const token = Cookies.get("token");
+  const refreshToken = Cookies.get("refreshToken");
+  const sessionId = Cookies.get("sessionId");
+
+  const isPublicRoute = [
+    "/login",
+    "/register",
+    "/verify",
+    "/forgot-password",
+    "/google",
+  ].some((route) => pathname?.startsWith(route));
+
+  const { data: user, isError, isLoading } = useGetCurrentUser();
+  const { mutate: refreshTokenMutation } = useRefreshToken();
+
+  useEffect(() => {
+    if (!token && !isPublicRoute) {
+      router.push("/login");
+      return;
+    }
+
+    if (token && isError && refreshToken && sessionId) {
+      refreshTokenMutation(
+        { refreshToken, sessionId },
+        {
+          onSuccess: (data) => {
+            if (
+              data &&
+              data.accessToken &&
+              data.refreshToken &&
+              data.sessionId
+            ) {
+              Cookies.set("token", data.accessToken, { expires: 24 });
+              Cookies.set("refreshToken", data.refreshToken, { expires: 60 });
+              Cookies.set("sessionId", data.sessionId, { expires: 24 });
+              toast.success("Token refreshed successfully");
+            }
+          },
+          onError: () => {
+            Cookies.remove("token");
+            Cookies.remove("refreshToken");
+            Cookies.remove("sessionId");
+            if (!isPublicRoute) {
+              router.push("/login");
+            }
+            toast.error("Session expired. Please login again.");
+          },
+        }
+      );
+    }
+  }, [
+    token,
+    isError,
+    refreshToken,
+    sessionId,
+    isPublicRoute,
+    router,
+    refreshTokenMutation,
+  ]);
+
+  return {
+    isAuthenticated: !!token && !!user,
+    isLoading,
+    user,
+    isPublicRoute,
+  };
 };

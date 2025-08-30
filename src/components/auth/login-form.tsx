@@ -2,7 +2,8 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +12,10 @@ import { useLogin } from "@/hooks/use-auth";
 import ButtonLoading from "../ui/button-loading";
 import PWarning from "../ui/p-warning";
 import type { ApiError } from "@/types/api";
+import Cookies from "js-cookie";
 
 export function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +26,13 @@ export function LoginForm() {
     isError,
     error: mutationError,
   } = useLogin();
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      router.push("/");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.MouseEvent) => {
     e.preventDefault();

@@ -1,43 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useGetCurrentUser, useRefreshToken } from "@/hooks/use-auth";
 import { useUserStore } from "@/stores/use-user-store";
 import { toast } from "sonner";
 
-interface AuthProviderProps {
+interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const publicRoutes = ["/login"];
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const { setUser, logout } = useUserStore();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname?.startsWith(route)
-  );
   const token = Cookies.get("token");
   const refreshToken = Cookies.get("refreshToken");
   const sessionId = Cookies.get("sessionId");
 
   const { mutate: refreshTokenMutation, isPending: isRefreshing } =
     useRefreshToken();
-
   const { data: user, isError, isLoading } = useGetCurrentUser();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
       if (!token) {
-        if (!isPublicRoute) {
-          router.push("/login");
-        }
-        setIsCheckingAuth(false);
+        router.push("/login");
         return;
       }
 
@@ -67,9 +57,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                   Cookies.remove("refreshToken");
                   Cookies.remove("sessionId");
                   logout();
-                  if (!isPublicRoute) {
-                    router.push("/login");
-                  }
+                  router.push("/login");
                   toast.error("Session expired. Please login again.");
                 },
               }
@@ -79,9 +67,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             Cookies.remove("refreshToken");
             Cookies.remove("sessionId");
             logout();
-            if (!isPublicRoute) {
-              router.push("/login");
-            }
+            router.push("/login");
             toast.error("Session expired. Please login again.");
           }
         } else if (isError) {
@@ -89,9 +75,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           Cookies.remove("refreshToken");
           Cookies.remove("sessionId");
           logout();
-          if (!isPublicRoute) {
-            router.push("/login");
-          }
+          router.push("/login");
           toast.error("Invalid session. Please login again.");
         }
       }
@@ -107,7 +91,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isError,
     refreshToken,
     sessionId,
-    isPublicRoute,
     router,
     logout,
     refreshTokenMutation,
@@ -119,7 +102,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [user, setUser]);
 
-  if (isCheckingAuth || (isRefreshing && !isPublicRoute)) {
+  if (isCheckingAuth || isLoading || isRefreshing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -127,13 +110,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
   }
 
-  if (isPublicRoute) {
-    return <>{children}</>;
-  }
-
   if (!token) {
     return null;
   }
 
   return <>{children}</>;
-};
+}

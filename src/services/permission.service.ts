@@ -11,4 +11,9 @@ export const permissionService = {
     const response = await axiosInstance.get("/permissions");
     return response.data;
   },
+
+  getPermissionById: async (id: string) => {
+    const response = await axiosInstance.get(`/permissions/${id}`);
+    return response.data;
+  },
 };

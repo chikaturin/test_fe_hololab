@@ -4,7 +4,7 @@ import { Button } from "./button";
 
 export default function ButtonLoading() {
   return (
-    <Button variant="loading" disabled>
+    <Button variant="outline" disabled>
       <Loader2Icon className="animate-spin" />
     </Button>
   );

@@ -1,4 +1,4 @@
-import { EditEmployeeForm } from "@/components/staff/edit-staff-form";
+import { EditStaffForm } from "@/components/staff/edit-staff-form";
 import {
   Card,
   CardContent,
@@ -55,7 +55,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <EditEmployeeForm employeeId={id} />
+              <EditStaffForm staffId={id} />
             </CardContent>
           </Card>
         </div>

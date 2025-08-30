@@ -282,9 +282,6 @@ export function AddStaffForm() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
-          Additional Information
-        </h3>
         <div className="space-y-2">
           <Label htmlFor="salary" className="text-sm font-medium">
             Salary

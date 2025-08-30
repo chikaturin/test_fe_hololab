@@ -15,6 +15,7 @@ export interface Staff {
   email: string;
   password: string;
   salary: number;
+  userId: string;
 }
 
 export interface sendStaff {

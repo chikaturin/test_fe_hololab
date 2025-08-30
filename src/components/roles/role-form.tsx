@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUpdateRole } from "@/hooks/use-roles";
+import Link from "next/link";
 
 interface RoleFormProps {
   role?: Role | null;
@@ -45,8 +46,11 @@ export function RoleForm({ role, onCancel }: RoleFormProps) {
       const permissionIds =
         role.keyPermissions
           ?.map((permissionName) => {
+            // Tách permissionName thành name và module
+            const [name, module] = permissionName.split(".");
+
             const permission = availablePermissions.find(
-              (p: Permission) => p.name === permissionName
+              (p: Permission) => p.name === name && p.module === module
             );
             return permission?._id || permissionName;
           })
@@ -186,7 +190,7 @@ export function RoleForm({ role, onCancel }: RoleFormProps) {
               {role ? "Update Role" : "Add Role"}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              <Link href="/roles">Cancel</Link>
             </Button>
           </div>
         </form>

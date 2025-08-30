@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,12 +14,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Department } from "@/services/department.service";
+import { Department, SendDepartment } from "@/services/department.service";
+import { useGetAllStaff } from "@/hooks/use-staffs";
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Staff } from "@/services/staff.service";
 
 interface DepartmentFormProps {
   department?: Department | null;
-  onSubmit: (data: unknown) => void;
   onCancel: () => void;
+  onSubmit: (data: SendDepartment) => void;
 }
 
 export function DepartmentForm({
@@ -30,18 +39,28 @@ export function DepartmentForm({
   const [formData, setFormData] = useState({
     name: department?.name || "",
     description: department?.description || "",
+    userManager: department?.userManager || "",
   });
+  const { data: staffData } = useGetAllStaff();
+  const [staffs, setStaff] = useState<Staff[]>([]);
+  useEffect(() => {
+    if (!staffData) return;
+    type StaffPayload = Staff[] | { data: Staff[] };
+    const payload = staffData as unknown as StaffPayload;
+    const list = Array.isArray(payload) ? payload : payload.data;
+    setStaff(list);
+  }, [staffData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     const target = e.target as HTMLElement;
     if (e.key === "Enter" && !e.shiftKey && target.tagName !== "TEXTAREA") {
       e.preventDefault();
-      onSubmit(formData);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
   };
 
   return (
@@ -89,6 +108,26 @@ export function DepartmentForm({
               rows={3}
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="users">Users Manager</Label>
+            <Select
+              value={formData.userManager}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, userManager: value }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select user" />
+              </SelectTrigger>
+              <SelectContent>
+                {staffs?.map((staff) => (
+                  <SelectItem key={staff.userId} value={staff.userId}>
+                    {staff.firstName} {staff.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2 justify-end">
             <Button type="submit" className="bg-primary hover:bg-primary/90">

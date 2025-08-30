@@ -7,7 +7,6 @@ export default function NotFound() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto text-center">
-          {/* Header Section */}
           <div className="mb-12">
             <div className="mb-6 flex justify-center">
               <div className="relative">
@@ -31,7 +30,6 @@ export default function NotFound() {
             </p>
           </div>
 
-          {/* Navigation Suggestions */}
           <Card className="mb-8">
             <CardContent className="p-8">
               <h2 className="text-xl font-semibold text-foreground mb-6">

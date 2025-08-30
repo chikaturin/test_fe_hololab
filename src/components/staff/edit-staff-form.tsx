@@ -21,11 +21,11 @@ import { Department, SendDepartment } from "@/services/department.service";
 import { formatSalary } from "@/hooks/use-format-salary";
 import { useRouter } from "next/navigation";
 
-interface EditEmployeeFormProps {
-  employeeId: string;
+interface EditStaffFormProps {
+  staffId: string;
 }
 
-export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
+export function EditStaffForm({ staffId }: EditStaffFormProps) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -39,7 +39,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
   const [, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const { data, isLoading, error, isError } = useGetStaffById(employeeId);
+  const { data, isLoading, error, isError } = useGetStaffById(staffId);
   const { mutate: updateStaff } = useUpdateStaff();
   const { data: departments } = useGetAllDepartment();
   const departmentList = useMemo(() => {
@@ -86,7 +86,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
 
     updateStaff(
       {
-        id: employeeId,
+        id: staffId,
         data: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -99,7 +99,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
       },
       {
         onError: () => {
-          toast.error("Failed to update employee");
+          toast.error("Failed to update staff");
         },
         onSettled: () => setIsSubmitting(false),
       }
@@ -111,7 +111,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground mt-4">Loading employee data...</p>
+          <p className="text-muted-foreground mt-4">Loading staff data...</p>
         </div>
       </div>
     );
@@ -123,12 +123,12 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
         <div className="text-center py-8">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold text-foreground mb-2">
-            Failed to Load Employee Data
+            Failed to Load staff Data
           </h3>
           <p className="text-muted-foreground mb-4">
             {error instanceof Error
               ? error.message
-              : "An error occurred while loading employee data"}
+              : "An error occurred while loading staff data"}
           </p>
           <Button
             onClick={() => window.location.reload()}
@@ -244,7 +244,7 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
 
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
-          Employment Information
+          Staff Information
         </h3>
 
         <div className="grid md:grid-cols-2 gap-4">
@@ -288,20 +288,13 @@ export function EditEmployeeForm({ employeeId }: EditEmployeeFormProps) {
         </div>
       </div>
 
-      {/* Additional Information Section */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
-          Additional Information
-        </h3>
-      </div>
-
       <div className="flex gap-4 pt-4">
         <Button
           type="submit"
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5"
           disabled={isLoading}
         >
-          {isLoading ? "Editing Employee..." : "Edit Employee"}
+          {isLoading ? "Editing staff..." : "Edit staff"}
         </Button>
         <Button
           type="button"

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConditionalHeader } from "@/components/layout/conditional-header";
 import QueryProvider from "@/providers/query-client";
+import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -31,10 +32,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
-          <ConditionalHeader />
-          {/* <AuthProvider> */}
-          {children}
-          {/* </AuthProvider> */}
+          <AuthProvider>
+            <ConditionalHeader />
+            {children}
+          </AuthProvider>
         </QueryProvider>
 
         <Toaster position="top-right" />

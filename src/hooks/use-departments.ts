@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { departmentService } from "@/services/department.service";
 import { toast } from "sonner";
+import { SendDepartment } from "@/services/department.service";
 
 export const useGetAllDepartment = () => {
   return useQuery({
@@ -31,6 +32,18 @@ export const useCreateDepartment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["departments"] });
       toast.success("Department created successfully");
+    },
+  });
+};
+
+export const useUpdateDepartment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: SendDepartment }) =>
+      departmentService.updateDepartment(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
+      toast.success("Department updated successfully");
     },
   });
 };

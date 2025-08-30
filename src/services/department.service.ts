@@ -8,12 +8,14 @@ export interface Department {
   createdAt: string;
   manager: string;
   staffCount: number;
+  userManager: string;
 }
 
 export interface SendDepartment {
   _id?: string;
   name: string;
   description: string;
+  userManager: string;
 }
 
 export interface DepartmentResponse {
@@ -36,7 +38,7 @@ export const departmentService = {
   },
 
   updateDepartment: async (id: string, data: SendDepartment) => {
-    const response = await axiosInstance.put<SendDepartment>(
+    const response = await axiosInstance.patch<SendDepartment>(
       `/departments/${id}`,
       data,
       {
