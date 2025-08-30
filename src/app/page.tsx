@@ -71,27 +71,6 @@ export default function ManagementPage() {
               </Card>
             </Link>
           </div>
-
-          <div className="mt-16 grid md:grid-cols-4 gap-4">
-            <div className="text-center p-6 bg-card/50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">24</div>
-              <div className="text-sm text-muted-foreground">Total staffs</div>
-            </div>
-            <div className="text-center p-6 bg-card/50 rounded-lg">
-              <div className="text-2xl font-bold text-accent">8</div>
-              <div className="text-sm text-muted-foreground">Departments</div>
-            </div>
-            <div className="text-center p-6 bg-card/50 rounded-lg">
-              <div className="text-2xl font-bold text-secondary">5</div>
-              <div className="text-sm text-muted-foreground">Active Roles</div>
-            </div>
-            <div className="text-center p-6 bg-card/50 rounded-lg">
-              <div className="text-2xl font-bold text-emerald-600">12</div>
-              <div className="text-sm text-muted-foreground">
-                Recent Assignments
-              </div>
-            </div>
-          </div>
         </main>
       </div>
     </ProtectedRoute>
