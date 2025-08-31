@@ -19,11 +19,12 @@ import { useGetAllDepartment } from "@/hooks/use-departments";
 import { useCreateStaff } from "@/hooks/use-staffs";
 import { Department } from "@/services/department.service";
 import { Calendar28 } from "@/components/ui/picker-date";
-import { formatSalary } from "@/hooks/use-format-salary";
 import { useRouter } from "next/navigation";
+import { usePermission } from "@/hooks/use-permission";
 
 export function AddStaffForm() {
   const router = useRouter();
+  const { canAccessStaffManagement, isStaff } = usePermission();
   const JOB_TITLES = [
     "Manager",
     "Team Lead",
@@ -97,6 +98,15 @@ export function AddStaffForm() {
     }, 1500);
   };
 
+  const handleCancel = () => {
+    if (isStaff()) {
+      router.push("/");
+    } else if (canAccessStaffManagement()) {
+      router.push("/staffs");
+    } else {
+      router.push("/");
+    }
+  };
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
@@ -290,14 +300,10 @@ export function AddStaffForm() {
             id="salary"
             type="number"
             placeholder="Enter salary"
-            value={formatSalary(formData.salary)}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                salary: Number(e.target.value || 0),
-              }))
-            }
-            className="bg-white"
+            value={formData.salary}
+            onChange={(e) => handleInputChange("salary", e.target.value)}
+            className=" bg-input border-border w-full focus:ring-2 focus:ring-ring"
+            required
           />
         </div>
       </div>
@@ -314,9 +320,9 @@ export function AddStaffForm() {
           type="button"
           variant="outline"
           className="flex-1 bg-transparent"
-          onClick={() => router.push("/staffs")}
+          onClick={handleCancel}
         >
-          Cancel
+          {isStaff() ? "Back to Dashboard" : "Back to Staffs"}
         </Button>
       </div>
     </form>

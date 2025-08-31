@@ -29,6 +29,7 @@ export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
             <Button
               variant="ghost"
               size="sm"
+              type="submit"
               onClick={() => onEdit(department)}
               className="h-8 w-8 p-0 hover:bg-primary"
             >

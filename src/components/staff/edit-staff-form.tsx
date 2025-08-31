@@ -20,6 +20,7 @@ import { useGetAllDepartment } from "@/hooks/use-departments";
 import { Department, SendDepartment } from "@/services/department.service";
 import { formatSalary } from "@/hooks/use-format-salary";
 import { useRouter } from "next/navigation";
+import { usePermission } from "@/hooks/use-permission";
 
 interface EditStaffFormProps {
   staffId: string;
@@ -98,12 +99,41 @@ export function EditStaffForm({ staffId }: EditStaffFormProps) {
         },
       },
       {
+        onSuccess: () => {
+          toast.success("Profile updated successfully!");
+          // Nếu là Staff thì redirect về dashboard
+          if (isStaff()) {
+            router.push("/");
+          }
+        },
         onError: () => {
           toast.error("Failed to update staff");
         },
         onSettled: () => setIsSubmitting(false),
       }
     );
+  };
+
+  const { canAccessStaffManagement, isStaff } = usePermission();
+
+  const handleCancel = () => {
+    if (isStaff()) {
+      router.push("/");
+    } else if (canAccessStaffManagement()) {
+      router.push("/staffs");
+    } else {
+      router.push("/");
+    }
+  };
+
+  const getCancelButtonText = () => {
+    if (isStaff()) {
+      return "Back to Dashboard";
+    } else if (canAccessStaffManagement()) {
+      return "Back to Staffs";
+    } else {
+      return "Cancel";
+    }
   };
 
   if (isLoading) {
@@ -300,9 +330,9 @@ export function EditStaffForm({ staffId }: EditStaffFormProps) {
           type="button"
           variant="outline"
           className="flex-1 bg-transparent"
-          onClick={() => router.push("/staffs")}
+          onClick={handleCancel}
         >
-          Cancel
+          {getCancelButtonText()}
         </Button>
       </div>
     </form>

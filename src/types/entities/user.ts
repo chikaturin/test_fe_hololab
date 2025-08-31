@@ -14,7 +14,8 @@ export interface UserRole {
 }
 
 export interface User {
-  id: string;
+  _id: string;
+  staffId: string;
   username: string;
   email: string;
   isActive: boolean;

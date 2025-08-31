@@ -28,8 +28,8 @@ export function LoginForm() {
   } = useLogin();
 
   useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
+    const accessToken = Cookies.get("accessToken");
+    if (accessToken) {
       router.push("/");
     }
   }, [router]);
@@ -111,7 +111,12 @@ export function LoginForm() {
       {isPending ? (
         <ButtonLoading />
       ) : (
-        <Button type="button" variant="default" onClick={handleSubmit}>
+        <Button
+          type="button"
+          variant="default"
+          onClick={handleSubmit}
+          className="w-full"
+        >
           Sign In
         </Button>
       )}

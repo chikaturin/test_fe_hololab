@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isPublicRoute = publicRoutes.some((route) =>
     pathname?.startsWith(route)
   );
-  const token = Cookies.get("token");
+  const accessToken = Cookies.get("accessToken");
   const refreshToken = Cookies.get("refreshToken");
   const sessionId = Cookies.get("sessionId");
 
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      if (!token) {
+      if (!accessToken) {
         if (!isPublicRoute) {
           router.push("/login");
         }
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return;
       }
 
-      if (token && !user && !isLoading) {
+      if (accessToken && !user && !isLoading) {
         if (isError && refreshToken && sessionId) {
           try {
             refreshTokenMutation(
@@ -54,7 +54,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                     data.refreshToken &&
                     data.sessionId
                   ) {
-                    Cookies.set("token", data.accessToken, { expires: 24 });
+                    Cookies.set("accessToken", data.accessToken, {
+                      expires: 24,
+                    });
                     Cookies.set("refreshToken", data.refreshToken, {
                       expires: 60,
                     });
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                   }
                 },
                 onError: () => {
-                  Cookies.remove("token");
+                  Cookies.remove("accessToken");
                   Cookies.remove("refreshToken");
                   Cookies.remove("sessionId");
                   logout();
@@ -75,7 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               }
             );
           } catch {
-            Cookies.remove("token");
+            Cookies.remove("accessToken");
             Cookies.remove("refreshToken");
             Cookies.remove("sessionId");
             logout();
@@ -85,7 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             toast.error("Session expired. Please login again.");
           }
         } else if (isError) {
-          Cookies.remove("token");
+          Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
           Cookies.remove("sessionId");
           logout();
@@ -101,7 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     checkAuthStatus();
   }, [
-    token,
+    accessToken,
     user,
     isLoading,
     isError,
@@ -131,7 +133,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return <>{children}</>;
   }
 
-  if (!token) {
+  if (!accessToken) {
     return null;
   }
 

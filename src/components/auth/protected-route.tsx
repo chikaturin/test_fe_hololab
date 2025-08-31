@@ -16,7 +16,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { setUser, logout } = useUserStore();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  const token = Cookies.get("token");
+  const accessToken = Cookies.get("accessToken");
   const refreshToken = Cookies.get("refreshToken");
   const sessionId = Cookies.get("sessionId");
 
@@ -26,12 +26,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      if (!token) {
+      if (!accessToken) {
         router.push("/login");
         return;
       }
 
-      if (token && !user && !isLoading) {
+      if (accessToken && !user && !isLoading) {
         if (isError && refreshToken && sessionId) {
           try {
             refreshTokenMutation(
@@ -44,7 +44,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                     data.refreshToken &&
                     data.sessionId
                   ) {
-                    Cookies.set("token", data.accessToken, { expires: 24 });
+                    Cookies.set("accessToken", data.accessToken, {
+                      expires: 24,
+                    });
                     Cookies.set("refreshToken", data.refreshToken, {
                       expires: 60,
                     });
@@ -53,7 +55,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                   }
                 },
                 onError: () => {
-                  Cookies.remove("token");
+                  Cookies.remove("accessToken");
                   Cookies.remove("refreshToken");
                   Cookies.remove("sessionId");
                   logout();
@@ -63,7 +65,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
               }
             );
           } catch {
-            Cookies.remove("token");
+            Cookies.remove("accessToken");
             Cookies.remove("refreshToken");
             Cookies.remove("sessionId");
             logout();
@@ -71,7 +73,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
             toast.error("Session expired. Please login again.");
           }
         } else if (isError) {
-          Cookies.remove("token");
+          Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
           Cookies.remove("sessionId");
           logout();
@@ -85,7 +87,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     checkAuthStatus();
   }, [
-    token,
+    accessToken,
     user,
     isLoading,
     isError,
@@ -110,7 +112,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!token) {
+  if (!accessToken) {
     return null;
   }
 

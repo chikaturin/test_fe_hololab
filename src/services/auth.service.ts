@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { User } from "@/types/entities/user";
+import { headersApi } from "@/lib/headers-api";
 import Cookies from "js-cookie";
 
 export interface LoginRequest {
@@ -14,6 +15,12 @@ export interface RefreshTokenRequest {
 
 export interface LogoutRequest {
   sessionId: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface AuthResponse {
@@ -42,15 +49,27 @@ export const authService = {
   logout: async (data: LogoutRequest) => {
     const response = await axiosInstance.post<AuthResponse>(
       "/auth/logout",
-      data
+      data,
+      { headers: headersApi }
     );
+    console.log(headersApi);
     return response.data;
   },
 
   getCurrentUser: async (): Promise<User> => {
     const response = await axiosInstance.get("/auth", {
       headers: {
-        Authorization: `Bearer ${Cookies.get("token")}`,
+        Authorization: `Bearer ${Cookies.get("accessToken")}`,
+        "x-session-id": Cookies.get("sessionId"),
+      },
+    });
+    return response.data;
+  },
+
+  changePassword: async (data: ChangePasswordRequest) => {
+    const response = await axiosInstance.post("/auth/change-password", data, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("accessToken")}`,
         "x-session-id": Cookies.get("sessionId"),
       },
     });

@@ -8,6 +8,8 @@ import type { ApiError } from "@/types/api";
 import type {
   AuthResponse,
   RefreshTokenRequest,
+  LogoutRequest,
+  ChangePasswordRequest,
 } from "@/services/auth.service";
 import { User } from "@/types/entities/user";
 import { usePathname } from "next/navigation";
@@ -22,21 +24,31 @@ export const useLogin = () => {
     { email: string; password: string }
   >({
     mutationFn: authService.login,
-    onSuccess: (data: AuthResponse) => {
+    onSuccess: (data: AuthResponse, variables) => {
       if (data && data.accessToken && data.refreshToken && data.sessionId) {
-        Cookies.set("token", data.accessToken, { expires: 24 });
+        Cookies.set("accessToken", data.accessToken, { expires: 24 });
         Cookies.set("refreshToken", data.refreshToken, { expires: 60 });
         Cookies.set("sessionId", data.sessionId, { expires: 24 });
 
         console.log("Cookies set successfully");
       } else {
-        console.log("Required token data missing:", data);
+        console.log("Required accessToken data missing:", data);
       }
 
       toast.success("Login successful!");
       console.log("Login successful!");
 
-      router.push("/");
+      const { email, password } = variables;
+
+      if (password === "staff@123") {
+        setTimeout(() => {
+          router.push("/change-password?email=" + encodeURIComponent(email));
+        }, 100);
+      } else {
+        setTimeout(() => {
+          router.push("/");
+        }, 100);
+      }
     },
     onError: (error: ApiError) => {
       const message = error.response?.data?.message || "Login failed";
@@ -50,13 +62,14 @@ export const useRefreshToken = () => {
     mutationFn: authService.refreshToken,
     onSuccess: (data: AuthResponse) => {
       if (data && data.accessToken && data.refreshToken && data.sessionId) {
-        Cookies.set("token", data.accessToken, { expires: 24 });
+        Cookies.set("accessToken", data.accessToken, { expires: 24 });
         Cookies.set("refreshToken", data.refreshToken, { expires: 60 });
         Cookies.set("sessionId", data.sessionId, { expires: 24 });
       }
     },
     onError: (error: ApiError) => {
-      const message = error.response?.data?.message || "Refresh token failed";
+      const message =
+        error.response?.data?.message || "Refresh accessToken failed";
       toast.error(message);
     },
   });
@@ -67,28 +80,43 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
   const { logout } = useUserStore();
 
-  return () => {
-    Cookies.remove("token");
-    Cookies.remove("refreshToken");
-    Cookies.remove("sessionId");
+  return useMutation<AuthResponse, ApiError, LogoutRequest>({
+    mutationFn: authService.logout,
+    onSuccess: () => {
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      Cookies.remove("sessionId");
 
-    logout();
+      logout();
+      queryClient.clear();
 
-    queryClient.clear();
+      toast.success("Logged out successfully!");
+      router.push("/login");
+    },
+    onError: (error: ApiError) => {
+      const message = error.response?.data?.message || "Logout failed";
+      console.log(message);
 
-    toast.success("Logged out successfully!");
-    router.push("/login");
-  };
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      Cookies.remove("sessionId");
+
+      logout();
+      queryClient.clear();
+
+      toast.success("Logged out successfully!");
+      router.push("/login");
+    },
+  });
 };
 
 export const useGetCurrentUser = () => {
-  const token = Cookies.get("token");
+  const accessToken = Cookies.get("accessToken");
 
-  return useQuery({
-    queryKey: ["auth"],
+  return useQuery<User>({
+    queryKey: ["currentUser"],
     queryFn: authService.getCurrentUser,
-    enabled: !!token,
-    select: (data: User) => data,
+    enabled: !!accessToken,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnMount: false,
@@ -101,28 +129,22 @@ export const useGetCurrentUser = () => {
 export const useAuthCheck = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const token = Cookies.get("token");
+  const accessToken = Cookies.get("accessToken");
   const refreshToken = Cookies.get("refreshToken");
   const sessionId = Cookies.get("sessionId");
 
-  const isPublicRoute = [
-    "/login",
-    "/register",
-    "/verify",
-    "/forgot-password",
-    "/google",
-  ].some((route) => pathname?.startsWith(route));
+  const isPublicRoute = ["/login"].some((route) => pathname?.startsWith(route));
 
   const { data: user, isError, isLoading } = useGetCurrentUser();
   const { mutate: refreshTokenMutation } = useRefreshToken();
 
   useEffect(() => {
-    if (!token && !isPublicRoute) {
+    if (!accessToken && !isPublicRoute) {
       router.push("/login");
       return;
     }
 
-    if (token && isError && refreshToken && sessionId) {
+    if (accessToken && isError && refreshToken && sessionId) {
       refreshTokenMutation(
         { refreshToken, sessionId },
         {
@@ -133,14 +155,14 @@ export const useAuthCheck = () => {
               data.refreshToken &&
               data.sessionId
             ) {
-              Cookies.set("token", data.accessToken, { expires: 24 });
+              Cookies.set("accessToken", data.accessToken, { expires: 24 });
               Cookies.set("refreshToken", data.refreshToken, { expires: 60 });
               Cookies.set("sessionId", data.sessionId, { expires: 24 });
               toast.success("Token refreshed successfully");
             }
           },
           onError: () => {
-            Cookies.remove("token");
+            Cookies.remove("accessToken");
             Cookies.remove("refreshToken");
             Cookies.remove("sessionId");
             if (!isPublicRoute) {
@@ -152,7 +174,7 @@ export const useAuthCheck = () => {
       );
     }
   }, [
-    token,
+    accessToken,
     isError,
     refreshToken,
     sessionId,
@@ -162,9 +184,32 @@ export const useAuthCheck = () => {
   ]);
 
   return {
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!accessToken && !!user,
     isLoading,
     user,
     isPublicRoute,
   };
+};
+
+export const useChangePassword = () => {
+  const router = useRouter();
+  return useMutation<AuthResponse, ApiError, ChangePasswordRequest>({
+    mutationFn: authService.changePassword,
+    onSuccess: () => {
+      toast.success("Password changed successfully!");
+
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      Cookies.remove("sessionId");
+
+      router.push("/login");
+    },
+    onError: (error: ApiError) => {
+      console.log("Debug - API Error:", error);
+      const message =
+        error.response?.data?.message ||
+        "Failed to change password. Please try again.";
+      toast.error(message);
+    },
+  });
 };
